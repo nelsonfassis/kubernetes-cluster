@@ -1,0 +1,65 @@
+---
+# tasks file for common
+- name: Create a SSH directory for user Nelson
+  file:
+    path: /home/nelson/.ssh/
+    state: directory
+    owner: nelson
+    group: nelson
+    mode: '700'
+
+- name: Copy SSH Key to user "nelson"
+  copy:
+    src: idrsa.pub
+    dest: /home/nelson/.ssh/authorized_keys
+    owner: nelson
+    group: nelson
+    mode: "0640"
+
+- name: Add nelson to sudoers passwordless group
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Install the Docker pre-requisits
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+
+- name: Copy Docker-CE Repo
+  copy:
+    src: docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: "0644"    
+
+- name: Install the Docker
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
+- name: Enable and start Docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Disable SWAP in fstab
+  replace:
+    path: /etc/fstab
+    regexp: '(^(?!#)(^.*swap.*$))'
+    replace: '# \1'    
+
+- name: Disable SWAP
+  shell: swapoff -a
+  changed_when: False

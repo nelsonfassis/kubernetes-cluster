@@ -1,0 +1,17 @@
+---
+- name: Copy Kubernetes Repo
+  copy:
+    src: kubernetes.repo
+    dest: /etc/yum.repos.d/kubernetes.repo
+    mode: "0644"    
+
+- name: Install Kubernetes Kubeadm
+  yum:
+    name: "{{ item }}"
+    state: present
+    # disable_excludes: all
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+  

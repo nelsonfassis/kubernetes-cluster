@@ -1,0 +1,14 @@
+---
+- name: Common setup
+  hosts: server
+  remote_user: nelson
+  become: yes
+  roles:
+    - common
+
+- name: Kube Masters
+  hosts: kubernetes_masters
+  remote_user: nelson
+  become: yes
+  roles:
+    - k8s-master
